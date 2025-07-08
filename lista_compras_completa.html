@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Lista de Compras por Data</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f9f9f9;
+      text-align: center;
+      padding: 30px;
+    }
+    .login {
+      margin: auto;
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      width: 300px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    .hidden { display: none; }
+    table {
+      margin-top: 20px;
+      width: 100%;
+      border-collapse: collapse;
+    }
+    th, td {
+      padding: 8px;
+      border: 1px solid #ddd;
+    }
+    th {
+      background-color: #f2f2f2;
+      font-weight: bold;
+    }
+    tr:nth-child(even) {
+      background-color: #f9f9f9;
+    }
+    .pix {
+      background: #fff;
+      margin-top: 30px;
+      padding: 15px;
+      border-radius: 10px;
+      font-weight: bold;
+      font-size: 16px;
+      border: 2px dashed #777;
+    }
+    .error {
+      color: red;
+      margin-top: 10px;
+    }
+    .success {
+      color: green;
+      margin-top: 10px;
+    }
+    button {
+      background-color: #007bff;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    input[type="date"] {
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      margin-bottom: 10px;
+      width: 200px;
+    }
+    @media (max-width: 400px) {
+      .login {
+        width: 90%;
+      }
+      table {
+        font-size: 12px;
+      }
+      input[type="date"] {
+        width: 90%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="login">
+    <h2>Digite sua data de nascimento</h2>
+    <input type="date" id="dob" />
+    <button onclick="login()">Entrar</button>
+    <p id="erro" class="error"></p>
+    <div style="margin-top: 15px; padding: 10px; background: #f0f0f0; border-radius: 5px; font-size: 12px; color: #666;">
+      <strong>Dicas para teste:</strong><br>
+      Use o seletor de data acima para escolher:<br>
+      • 30 de setembro de 1998<br>
+      • 29 de novembro de 1998<br>
+      • 15 de dezembro de 2002<br>
+      <em>Total: 46 usuários cadastrados</em>
+    </div>
+  </div>
+
+  <div id="dados" class="hidden">
+    <h2 id="nome"></h2>
+    <table>
+      <thead>
+        <tr><th>Item</th><th>Qtd</th><th>Valor Unitário</th><th>Total</th></tr>
+      </thead>
+      <tbody id="tabela"></tbody>
+    </table>
+    <h3>Total: R$ <span id="total"></span></h3>
+    <div class="pix">
+      Chave Pix para pagamento:<br>
+      <code>fe23a2ac-9782-40d6-aa31-3f344d859ca5</code><br><br>
+      Por favor, ao efetuar o pagamento, enviar o comprovante de pagamento para Bárbara Kelcyane - 86 999037268
+    </div>
+    <button onclick="logout()" style="margin-top: 20px;">Sair</button>
+  </div>
+
+  <script>
+    // Dados completos - 46 usuários registrados
+    const dados = {
+      "30/09/1998": {
+        nome: "Rodrigo Kelson Pereira dos Santos",
+        compras: [
+          { item: "Crepe", qtd: 7, valor: 6 },
+          { item: "Bolo", qtd: 2, valor: 8 },
+          { item: "Brigadeiro", qtd: 9, valor: 2 },
+          { item: "Cremosinho", qtd: 2, valor: 2 },
+          { item: "Suco", qtd: 2, valor: 5 },
+          { item: "Refrigerante lata", qtd: 2, valor: 5 }
+        ]
+      },
+      "29/11/1998": {
+        nome: "José Ferreira de Sá Júnior",
+        compras: [
+          { item: "Refrigerante lata", qtd: 1, valor: 5 },
+          { item: "Bolo", qtd: 1, valor: 8 },
+          { item: "Crepe", qtd: 2, valor: 6 },
+          { item: "Cremosinho", qtd: 1, valor: 2 },
+          { item: "Brigadeiro", qtd: 1, valor: 2 },
+          { item: "Refrigerante 1L", qtd: 1, valor: 8 }
+        ]
+      },
+      "15/12/2003": {
+        nome: "Wellio de Oliveira Santos",
+        compras: [
+          { item: "Refrigerante 1L", qtd: 1, valor: 8 },
+          { item: "Cremosinho", qtd: 2, valor: 2 },
+          { item: "Suco", qtd: 1, valor: 5 },
+          { item: "Crepe", qtd: 2, valor: 6 },
+          { item: "Kit Kat", qtd: 2, valor: 3 }
+        ]
+      },
+      "29/11/1995": {
+        nome: "Arielle Laressa da Silva Soares",
+        compras: [
+          { item: "Refrigerante lata", qtd: 3, valor: 5 },
+          { item: "Crepe", qtd: 2, valor: 6 }
+        ]
+      },
+      "18/08/1997": {
+        nome: "Aline Oliveira da Conceição",
+        compras: [
+          { item: "Bolo", qtd: 1, valor: 8 },
+          { item: "Crepe", qtd: 1, valor: 6 },
+          { item: "Brigadeiro", qtd: 1, valor: 2 }
+        ]
+      },
+      "06/10/2004": {
+        nome: "Camilla Vitória Amorim Santos",
+        compras: [
+          { item: "Crepe", qtd: 2, valor: 6 },
+          { item: "Refrigerante lata", qtd: 2, valor: 5 },
+          { item: "Brigadeiro", qtd: 1, valor: 2 }
+        ]
+      },
+      "26/08/2005": {
+        nome: "Carlos Melk Lopes Rodrigues",
+        compras: [
+          { item: "Brigadeiro", qtd: 1, valor: 2 },
+          { item: "Crepe", qtd: 3, valor: 6 },
+          { item: "Refrigerante lata", qtd: 2, valor: 5 }
+        ]
+      },
+      "05/07/2005": {
+        nome: "Victor Gabriel Ciqueira Castelo Branco",
+        compras: [
+          { item: "Crepe", qtd: 2, valor: 6 },
+          { item: "Brigadeiro", qtd: 1, valor: 2 },
+          { item: "Cremosinho", qtd: 1, valor: 2 },
+          { item: "Refrigerante lata", qtd: 1, valor: 5 },
+          { item: "Bolo", qtd: 1, valor: 8 }
+        ]
+      },
+      "03/04/2006": {
+        nome: "Arielly vithoria Rodrigues de almeida",
+        compras: [
+          { item: "Crepe", qtd: 2, valor: 6 },
+          { item: "Brigadeiro", qtd: 5, valor: 2 },
+          { item: "Bolo", qtd: 1, valor: 8 },
+          { item: "Refrigerante lata", qtd: 2, valor: 5 }
+        ]
+      },
+      "14/09/1993": {
+        nome: "Camila Aguiar da Silva",
+        compras: [
+          { item: "Refrigerante 1L", qtd: 1, valor: 8 },
+          { item: "Brigadeiro", qtd: 2, valor: 2 },
+          { item: "Suco", qtd: 1, valor: 5 }
+        ]
+      },
+      "22/06/1996": {
+        nome: "Caroline Maria Vieira Galvão Almeida",
+        compras: [
+          { item: "Refrigerante 1L", qtd: 1, valor: 8 },
+          { item: "Refrigerante lata", qtd: 3, valor: 5 },
+          { item: "Bolo", qtd: 1, valor: 8 },
+          { item: "Crepe", qtd: 5, valor: 6 },
+          { item: "Brigadeiro", qtd: 4, valor: 2 }
+        ]
+      },
+      "02/07/2004": {
+        nome: "Anderson mateus das neves Fontenele",
+        compras: [
+          { item: "Refrigerante 1L", qtd: 1, valor: 8 },
+          { item: "Refrigerante lata", qtd: 1, valor: 5 },
+          { item: "Kit Kat", qtd: 2, valor: 3 }
+        ]
+      },
+      "27/09/2004": {
+        nome: "Ivanyelly Marya Ribeiro Fontinele",
+        compras: [
+          { item: "Crepe", qtd: 1, valor: 6 },
+          { item: "Cremosinho", qtd: 3, valor: 2 },
+          { item: "Refrigerante 1L", qtd: 1, valor: 8 }
+        ]
+      },
+      "20/03/1998": {
+        nome: "Gercilio do nascimento chaves",
+        compras: [
+          { item: "Refrigerante 1L", qtd: 2, valor: 8 },
+          { item: "Refrigerante lata", qtd: 3, valor: 5 },
+          { item: "Bolo", qtd: 1, valor: 8 },
+          { item: "Cremosinho", qtd: 2, valor: 2 },
+          { item: "Crepe", qtd: 2, valor: 6 },
+          { item: "Brigadeiro", qtd: 2, valor: 2 }
+        ]
+      },
+      "22/07/1998": {
+        nome: "Bianca Soares de Oliveira",
+        compras: [
+          { item: "Bolo", qtd: 2, valor: 8 },
+          { item: "Kit Kat", qtd: 1, valor: 3 },
+          { item: "Crepe", qtd: 1, valor: 6 },
+          { item: "Brigadeiro", qtd: 1, valor: 2 }
+        ]
+      },
+      "27/06/2003": {
+        nome: "Hellen Vitoria da Silva Cruz Sousa",
+        compras: []
+      },
+      "26/09/2006": {
+        nome: "raissa vitória lopes dos santos",
+        compras: [
+          { item: "Bolo", qtd: 1, valor: 8 },
+          { item: "Refrigerante lata", qtd: 1, valor: 5 },
+          { item: "Crepe", qtd: 1, valor: 6 },
+          { item: "Brigadeiro", qtd: 1, valor: 2 }
+        ]
+      },
+      "03/01/2003": {
+        nome: "João Gabriel Torres Alves",
+        compras: [
+          { item: "Refrigerante lata", qtd: 1, valor: 5 },
+          { item: "Kit Kat", qtd: 1, valor: 3 },
+          { item: "Crepe", qtd: 1, valor: 6 }
+        ]
+      },
+      "13/11/1998": {
+        nome: "Ary Edson Soares Junior",
+        compras: [
+          { item: "Refrigerante lata", qtd: 1, valor: 5 },
+          { item: "Brigadeiro", qtd: 1, valor: 2 },
+          { item: "Bolo", qtd: 1, valor: 8 },
+          { item: "Crepe", qtd: 3, valor: 6 }
+        ]
+      },
+      "01/07/1996": {
+        nome: "Francisco Maykon Guimarães de Sousa",
+        compras: [
+          { item: "Refrigerante 1L", qtd: 1, valor: 8 },
+          { item: "Crepe", qtd: 1, valor: 6 }
+        ]
+      },
+      "14/04/1992": {
+        nome: "Pedro Alves Mourão Filho",
+        compras: [
+          { item: "Refrigerante lata", qtd: 2, valor: 5 },
+          { item: "Crepe", qtd: 2, valor: 6 },
+          { item: "Cremosinho", qtd: 1, valor: 2 }
+        ]
+      },
+      "21/05/2005": {
+        nome: "Ylana Kelly Gonçalves da Silva",
+        compras: [
+          { item: "Bolo", qtd: 1, valor: 8 }
+        ]
+      },
+      "09/01/2004": {
+        nome: "PEDRO HENRIQUE",
+        compras: [
+          { item: "Refrigerante 1L", qtd: 3, valor: 8 },
+          { item: "Crepe", qtd: 6, valor: 6 },
+          { item: "Refrigerante lata", qtd: 1, valor: 5 },
+          { item: "Brigadeiro", qtd: 1, valor: 2 }
+        ]
+      },
+      "02/06/1999": {
+        nome: "Antônia Cristina da Conceição Oliveira",
+        compras: []
+      },
+      "29/06/2003": {
+        nome: "Ryrchard Adriel Silva Santos",
+        compras: [
+          { item: "Refrigerante 1L", qtd: 2, valor: 8 },
+          { item: "Bolo", qtd: 1, valor: 8 },
+          { item: "Brigadeiro", qtd: 2, valor: 2 },
+          { item: "Crepe", qtd: 1, valor: 6 }
+        ]
+      },
+      "08/07/1998": {
+        nome: "Joysce Karolynne Moreira Lima de sousa",
+        compras: []
+      },
+      "21/07/1997": {
+        nome: "Gabriel Guimarães Cruz",
+        compras: [
+          { item: "Suco", qtd: 1, valor: 5 },
+          { item: "Crepe", qtd: 1, valor: 6 },
+          { item: "Kit Kat", qtd: 1, valor: 3 }
+        ]
+      },
+      "15/12/2002": [
+        {
+          nome: "Maria Gabriela Barreto Alves",
+          compras: [
+            { item: "Refrigerante lata", qtd: 2, valor: 5 },
+            { item: "Bolo", qtd: 1, valor: 8 },
+            { item: "Brigadeiro", qtd: 2, valor: 2 },
+            { item: "Crepe", qtd: 1, valor: 6 },
+            { item: "Refrigerante 1L", qtd: 2, valor: 8 }
+          ]
+        },
+        {
+          nome: "Brenda",
+          compras: [
+            { item: "Refrigerante 1L", qtd: 1, valor: 8 },
+            { item: "Brigadeiro", qtd: 6, valor: 2 },
+            { item: "Crepe", qtd: 6, valor: 6 },
+            { item: "Kit Kat", qtd: 1, valor: 3 },
+            { item: "Suco", qtd: 3, valor: 5 },
+            { item: "Refrigerante lata", qtd: 2, valor: 5 }
+          ]
+        },
+        {
+          nome: "Wélio",
+          compras: [
+            { item: "Refrigerante 1L", qtd: 1, valor: 8 },
+            { item: "Cremosinho", qtd: 2, valor: 2 },
+            { item: "Suco", qtd: 1, valor: 5 },
+            { item: "Crepe", qtd: 2, valor: 6 },
+            { item: "Kit Kat", qtd: 2, valor: 3 }
+          ]
+        }
+      ],
+      "09/11/2006": {
+        nome: "aylla beatriz da silva santos",
+        compras: [
+          { item: "Refrigerante lata", qtd: 1, valor: 5 },
+          { item: "Bolo", qtd: 1, valor: 8 },
+          { item: "Brigadeiro", qtd: 1, valor: 2 }
+        ]
+      },
+      "06/04/2006": {
+        nome: "João Anderson Gomes de Sousa",
+        compras: []
+      },
+      "15/09/2006": {
+        nome: "Flávia Vitória Damas Bezerra",
+        compras: []
+      },
+      "05/12/2003": {
+        nome: "Thalison Esaú de Sousa Silva",
+        compras: [
+          { item: "Cremosinho", qtd: 1, valor: 2 },
+          { item: "Refrigerante 1L", qtd: 2, valor: 8 }
+        ]
+      },
+      "21/01/1998": {
+        nome: "Karolaynne Regina Pinheiro Batista",
+        compras: [
+          { item: "Brigadeiro", qtd: 5, valor: 2 },
+          { item: "Bolo", qtd: 1, valor: 8 }
+        ]
+      },
+      "21/03/2002": {
+        nome: "Sara Maria Rocha Laurindo",
+        compras: [
+          { item: "Kit Kat", qtd: 2, valor: 3 },
+          { item: "Cremosinho", qtd: 2, valor: 2 }
+        ]
+      },
+      "17/04/2004": {
+        nome: "Kawet Batista Rodrigues dos Santos",
+        compras: [
+          { item: "Refrigerante lata", qtd: 1, valor: 5 },
+          { item: "Crepe", qtd: 5, valor: 6 },
+          { item: "Refrigerante 1L", qtd: 1, valor: 8 }
+        ]
+      },
+      "29/08/2002": {
+        nome: "Victor Gabriel Silva Barros",
+        compras: [
+          { item: "Kit Kat", qtd: 1, valor: 3 },
+          { item: "Refrigerante lata", qtd: 1, valor: 5 }
+        ]
+      },
+      "20/11/2004": {
+        nome: "Luanderson goncalves de almeida",
+        compras: []
+      },
+      "21/10/2006": {
+        nome: "Elisson Henrique Santos lima",
+        compras: []
+      },
+      "21/05/1997": {
+        nome: "Isabelle Mayse de Araújo Silva",
+        compras: [
+          { item: "Refrigerante 1L", qtd: 1, valor: 8 },
+          { item: "Bolo", qtd: 1, valor: 8 },
+          { item: "Cremosinho", qtd: 1, valor: 2 },
+          { item: "Kit Kat", qtd: 1, valor: 3 },
+          { item: "Crepe", qtd: 3, valor: 6 }
+        ]
+      },
+      "30/06/2007": {
+        nome: "Isabela Vitória Vieira Martins",
+        compras: [
+          { item: "Crepe", qtd: 1, valor: 6 }
+        ]
+      },
+      "15/11/2001": {
+        nome: "Gabriel Ângelo Dantas Brito",
+        compras: [
+          { item: "Refrigerante 1L", qtd: 1, valor: 8 },
+          { item: "Crepe", qtd: 1, valor: 6 }
+        ]
+      },
+      "05/09/2005": {
+        nome: "Ellano Gabriel Nunes de sousa",
+        compras: [
+          { item: "Bolo", qtd: 1, valor: 8 },
+          { item: "Crepe", qtd: 2, valor: 6 }
+        ]
+      },
+      "18/03/2006": {
+        nome: "Marina Hickmann da Silva Ferreira",
+        compras: [
+          { item: "Bolo", qtd: 1, valor: 8 },
+          { item: "Kit Kat", qtd: 1, valor: 3 },
+          { item: "Cremosinho", qtd: 1, valor: 2 },
+          { item: "Suco", qtd: 1, valor: 5 },
+          { item: "Brigadeiro", qtd: 1, valor: 2 }
+        ]
+      },
+      "09/04/2000": {
+        nome: "Francielle Pereira de sousa",
+        compras: [
+          { item: "Refrigerante lata", qtd: 4, valor: 5 },
+          { item: "Crepe", qtd: 3, valor: 6 }
+        ]
+      },
+      "25/11/1999": {
+        nome: "Vanessa Gomes Vieira de Sá",
+        compras: [
+          { item: "Refrigerante 1L", qtd: 1, valor: 8 }
+        ]
+      }
+    };
+
+    // Função para converter data do formato brasileiro para ISO
+    function convertDateToISO(dateStr) {
+      const [day, month, year] = dateStr.split('/');
+      return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+    }
+
+    // Função para converter data do formato ISO para brasileiro
+    function convertDateToBrazilian(dateStr) {
+      const [year, month, day] = dateStr.split('-');
+      return `${parseInt(day).toString().padStart(2, '0')}/${parseInt(month).toString().padStart(2, '0')}/${year}`;
+    }
+
+    // Função de login
+    function login() {
+      const dobInput = document.getElementById('dob');
+      const erro = document.getElementById('erro');
+      
+      // Limpa mensagens de erro
+      erro.textContent = '';
+      
+      if (!dobInput.value) {
+        erro.textContent = 'Por favor, selecione uma data de nascimento.';
+        return;
+      }
+      
+      // Converte a data do input para formato brasileiro
+      const dataBrasileira = convertDateToBrazilian(dobInput.value);
+      
+      // Debug: mostra as conversões
+      console.log('Data do input:', dobInput.value);
+      console.log('Data brasileira:', dataBrasileira);
+      console.log('Primeira data nos dados:', Object.keys(dados)[0]);
+      
+      // Verifica se a data existe nos dados
+      if (dados[dataBrasileira]) {
+        const userData = dados[dataBrasileira];
+        
+        // Verifica se há múltiplos usuários para esta data
+        if (Array.isArray(userData)) {
+          // Múltiplos usuários - mostra seleção
+          showUserSelection(userData, dataBrasileira);
+          return;
+        }
+        
+        // Usuário único - continua normalmente
+        showUserData(userData);
+      } else {
+        // Mostra algumas datas de exemplo disponíveis
+        const datasDisponiveis = Object.keys(dados).slice(0, 5);
+        erro.innerHTML = `Data de nascimento não encontrada no sistema.<br><br>
+                         <strong>Datas disponíveis para teste:</strong><br>
+                         ${datasDisponiveis.map(data => `• ${data}`).join('<br>')}
+                         <br><br><em>Total de ${Object.keys(dados).length} usuários registrados</em>`;
+      }
+    }
+
+    // Função para mostrar seleção de usuários
+    function showUserSelection(users, date) {
+      document.querySelector('.login').classList.add('hidden');
+      document.getElementById('dados').classList.remove('hidden');
+      
+      const nomeEl = document.getElementById('nome');
+      nomeEl.innerHTML = `<h3>Múltiplos usuários encontrados para ${date}</h3>
+                          <p>Selecione seu nome:</p>`;
+      
+      const tabela = document.getElementById('tabela');
+      tabela.innerHTML = '';
+      
+      users.forEach((user, index) => {
+        const row = tabela.insertRow();
+        const cell = row.insertCell(0);
+        cell.colSpan = 4;
+        cell.innerHTML = `<button onclick="selectUser(${index}, '${date}')" style="width: 100%; padding: 10px; margin: 5px 0; font-size: 16px; cursor: pointer; background: #007bff; color: white; border: none; border-radius: 5px;">${user.nome}</button>`;
+      });
+      
+      document.getElementById('total').textContent = '';
+      document.querySelector('.pix').style.display = 'none';
+    }
+
+    // Função para selecionar usuário específico
+    function selectUser(userIndex, date) {
+      const userData = dados[date][userIndex];
+      showUserData(userData);
+    }
+
+    // Função para mostrar dados do usuário
+    function showUserData(userData) {
+      document.querySelector('.login').classList.add('hidden');
+      document.getElementById('dados').classList.remove('hidden');
+      
+      // Preenche nome
+      document.getElementById('nome').textContent = userData.nome;
+      
+      // Preenche tabela
+      const tabela = document.getElementById('tabela');
+      tabela.innerHTML = '';
+      
+      let totalGeral = 0;
+      
+      if (userData.compras.length === 0) {
+        const row = tabela.insertRow();
+        const cell = row.insertCell(0);
+        cell.colSpan = 4;
+        cell.textContent = 'Nenhuma compra registrada';
+        cell.style.textAlign = 'center';
+        cell.style.fontStyle = 'italic';
+        cell.style.color = '#666';
+      } else {
+        userData.compras.forEach(compra => {
+          // Validação de dados da compra
+          if (!compra.item || !compra.qtd || !compra.valor) {
+            console.warn('Dados incompletos para compra:', compra);
+            return;
+          }
+          
+          const row = tabela.insertRow();
+          const totalItem = compra.qtd * compra.valor;
+          
+          row.insertCell(0).textContent = compra.item;
+          row.insertCell(1).textContent = compra.qtd;
+          row.insertCell(2).textContent = `R$ ${compra.valor.toFixed(2)}`;
+          row.insertCell(3).textContent = `R$ ${totalItem.toFixed(2)}`;
+          
+          totalGeral += totalItem;
+        });
+      }
+      
+      // Atualiza total
+      document.getElementById('total').textContent = totalGeral.toFixed(2);
+      
+      // Mostra seção PIX
+      document.querySelector('.pix').style.display = 'block';
+    }
+
+    // Função de logout
+    function logout() {
+      document.querySelector('.login').classList.remove('hidden');
+      document.getElementById('dados').classList.add('hidden');
+      document.getElementById('dob').value = '';
+      document.getElementById('erro').textContent = '';
+    }
+
+    // Permite login com Enter
+    document.getElementById('dob').addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
+        login();
+      }
+    });
+
+    // Função para testar todas as datas
+    function testAllDates() {
+      const testDates = [
+        '30/09/1998', '29/11/1998', '15/12/2002', '29/11/1995', '18/08/1997',
+        '06/10/2004', '26/08/2005', '05/07/2005', '03/04/2006', '14/09/1993',
+        '22/06/1996', '02/07/2004', '27/09/2004', '20/03/1998', '22/07/1998',
+        '27/06/2003', '26/09/2006', '03/01/2003', '13/11/1998', '01/07/1996',
+        '14/04/1992', '21/05/2005', '09/01/2004', '02/06/1999', '29/06/2003',
+        '08/07/1998', '21/07/1997', '15/12/2002', '09/11/2006', '06/04/2006',
+        '15/09/2006', '05/12/2003', '21/01/1998', '21/03/2002', '17/04/2004',
+        '29/08/2002', '20/11/2004', '21/10/2006', '21/05/1997', '30/06/2007',
+        '15/11/2001', '05/09/2005', '18/03/2006', '09/04/2000', '15/12/2002',
+        '25/11/1999'
+      ];
+
+      console.log('=== TESTE DE TODAS AS DATAS ===');
+      let found = 0;
+      let notFound = 0;
+      
+      testDates.forEach(date => {
+        if (dados[date]) {
+          const userData = dados[date];
+          if (Array.isArray(userData)) {
+            // Múltiplos usuários
+            console.log(`✓ ${date} - ${userData.length} usuários:`);
+            userData.forEach((user, index) => {
+              console.log(`   ${index + 1}. ${user.nome} (${user.compras.length} itens)`);
+            });
+          } else {
+            // Usuário único
+            console.log(`✓ ${date} - ${userData.nome} (${userData.compras.length} itens)`);
+          }
+          found++;
+        } else {
+          console.log(`✗ ${date} - NÃO ENCONTRADA`);
+          notFound++;
+        }
+      });
+      
+      console.log(`\nRESUMO: ${found} encontradas, ${notFound} não encontradas`);
+      console.log(`Total de usuários no sistema: ${Object.keys(dados).length}`);
+      
+      return { found, notFound, total: testDates.length };
+    }
+
+    // Executa o teste ao carregar a página
+    window.addEventListener('load', function() {
+      console.log('Sistema iniciado com', Object.keys(dados).length, 'usuários registrados');
+      
+      // Verifica integridade dos dados
+      let integridadeOK = true;
+      Object.keys(dados).forEach(data => {
+        const userData = dados[data];
+        if (Array.isArray(userData)) {
+          // Múltiplos usuários
+          userData.forEach(user => {
+            if (!user.nome || !Array.isArray(user.compras)) {
+              console.error('Dados corrompidos para usuário em:', data);
+              integridadeOK = false;
+            }
+          });
+        } else {
+          // Usuário único
+          if (!userData.nome || !Array.isArray(userData.compras)) {
+            console.error('Dados corrompidos para:', data);
+            integridadeOK = false;
+          }
+        }
+      });
+      
+      if (integridadeOK) {
+        console.log('Todos os dados estão íntegros!');
+      }
+      
+      // Executa teste automático
+      testAllDates();
+    });
+  </script>
+</body>
+</html>
